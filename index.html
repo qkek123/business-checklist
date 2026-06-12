@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>감리 체크리스트</title>
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: #e2e0d8;
+    --border2: #ccc9be;
+    --text: #1a1917;
+    --text2: #6b6860;
+    --text3: #9b9890;
+    --accent: #4a3fa8;
+    --accent-light: #eeecfb;
+    --accent-mid: #7c74d4;
+    --tag-인력-bg: #dbeafe; --tag-인력-text: #1e40af;
+    --tag-일정-bg: #fef3c7; --tag-일정-text: #92400e;
+    --tag-기술-bg: #d1fae5; --tag-기술-text: #065f46;
+    --tag-산출물-bg: #fce7f3; --tag-산출물-text: #9d174d;
+    --tag-품질-bg: #ede9fe; --tag-품질-text: #5b21b6;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; }
+
+  /* ── 레이아웃 ── */
+  .layout { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 220px; min-width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .main-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 20px 0; flex-shrink: 0; }
+  .content { flex: 1; overflow-y: auto; padding: 20px; }
+
+  /* ── 사이드바 ── */
+  .sidebar-top { padding: 16px 14px 10px; border-bottom: 1px solid var(--border); }
+  .app-title { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: 0.04em; }
+  .app-subtitle { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .section-header { padding: 12px 14px 4px; font-size: 11px; font-weight: 600; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; }
+  .job-item { display: flex; align-items: center; gap: 8px; padding: 8px 14px; cursor: pointer; color: var(--text2); font-size: 13px; border-left: 3px solid transparent; transition: background 0.1s; }
+  .job-item:hover { background: var(--surface2); color: var(--text); }
+  .job-item.active { background: var(--accent-light); border-left-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .job-item .j-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .job-item .j-badge { font-size: 10px; background: var(--surface2); color: var(--text3); border-radius: 10px; padding: 1px 7px; font-weight: 500; }
+  .job-item.active .j-badge { background: var(--accent-light); color: var(--accent-mid); }
+  .sidebar-footer { margin-top: auto; padding: 10px; border-top: 1px solid var(--border); }
+  .btn-ghost { width: 100%; padding: 8px; font-size: 12px; cursor: pointer; border-radius: var(--radius-sm); border: 1px dashed var(--border2); background: transparent; color: var(--text3); display: flex; align-items: center; gap: 5px; justify-content: center; transition: background 0.1s; }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text2); }
+
+  /* ── 헤더 ── */
+  .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .job-title-wrap { display: flex; align-items: center; gap: 8px; }
+  .job-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .job-edit-btn { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 13px; padding: 2px 4px; border-radius: 4px; }
+  .job-edit-btn:hover { color: var(--text2); background: var(--surface2); }
+  .header-actions { display: flex; gap: 6px; align-items: center; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--surface); cursor: pointer; color: var(--text2); white-space: nowrap; }
+  .btn-sm:hover { background: var(--surface2); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #3b319a; }
+  .tabs { display: flex; margin-top: 12px; }
+  .tab { padding: 8px 16px; font-size: 13px; cursor: pointer; color: var(--text2); border-bottom: 2px solid transparent; background: none; border-top: none; border-left: none; border-right: none; font-weight: 500; transition: color 0.1s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── 변경 버튼 ── */
+  .change-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+  .change-label { font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.04em; margin-right: 2px; }
+  .change-btn { display: flex; align-items: center; gap: 5px; padding: 5px 12px; font-size: 12px; cursor: pointer; border-radius: 20px; border: 1px solid var(--border2); background: var(--surface); color: var(--text); font-weight: 500; transition: all 0.12s; }
+  .change-btn:hover { border-color: var(--accent-mid); color: var(--accent); background: var(--accent-light); }
+  .tag-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── 진행률 ── */
+  .progress-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 14px; }
+  .progress-stat { text-align: center; min-width: 48px; }
+  .progress-num { font-size: 20px; font-weight: 700; color: var(--accent); line-height: 1; }
+  .progress-lbl { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .progress-bar-area { flex: 1; }
+  .progress-bar-bg { background: var(--surface2); border-radius: 4px; height: 8px; overflow: hidden; margin-bottom: 4px; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-mid)); border-radius: 4px; transition: width 0.35s ease; }
+  .progress-pct { font-size: 12px; color: var(--text2); font-weight: 600; }
+
+  /* ── 카드 그리드 ── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 10px; }
+  .check-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; cursor: pointer; transition: border-color 0.15s, opacity 0.15s; user-select: none; }
+  .check-card:hover { border-color: var(--border2); }
+  .check-card.checked { opacity: 0.5; }
+  .card-inner { display: flex; gap: 10px; align-items: flex-start; }
+  .checkbox { width: 18px; height: 18px; min-width: 18px; border-radius: 4px; border: 1.5px solid var(--border2); display: flex; align-items: center; justify-content: center; margin-top: 2px; transition: background 0.12s, border-color 0.12s; }
+  .check-card.checked .checkbox { background: var(--accent); border-color: var(--accent); }
+  .check-icon { width: 10px; height: 10px; display: none; }
+  .check-card.checked .check-icon { display: block; }
+  .card-body { flex: 1; min-width: 0; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.4; }
+  .card-desc { font-size: 12px; color: var(--text2); margin-top: 3px; line-height: 1.5; }
+  .card-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+  .tag-pill { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .tag-인력 { background: var(--tag-인력-bg); color: var(--tag-인력-text); }
+  .tag-일정 { background: var(--tag-일정-bg); color: var(--tag-일정-text); }
+  .tag-기술 { background: var(--tag-기술-bg); color: var(--tag-기술-text); }
+  .tag-산출물 { background: var(--tag-산출물-bg); color: var(--tag-산출물-text); }
+  .tag-품질 { background: var(--tag-품질-bg); color: var(--tag-품질-text); }
+
+  /* ── 섹션 구분 ── */
+  .section-title { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: 0.06em; margin: 20px 0 8px; }
+  .section-title:first-child { margin-top: 0; }
+
+  /* ── 템플릿 탭 ── */
+  .tmpl-list { display: flex; flex-direction: column; gap: 8px; }
+  .tmpl-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+  .tmpl-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .tmpl-info { flex: 1; }
+  .tmpl-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .tmpl-meta { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .tmpl-actions { display: flex; gap: 6px; }
+  .icon-btn { padding: 5px 8px; font-size: 13px; cursor: pointer; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; color: var(--text2); }
+  .icon-btn:hover { background: var(--surface2); }
+  .tmpl-items-list { margin-top: 0; }
+  .tmpl-item-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .tmpl-item-row:last-child { border-bottom: none; }
+
+  /* ── 모달 ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .modal-overlay.hidden { display: none; }
+  .modal { background: var(--surface); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 480px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+  .form-group { margin-bottom: 12px; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 4px; display: block; }
+  .form-input { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); outline: none; }
+  .form-input:focus { border-color: var(--accent-mid); }
+  .form-textarea { resize: vertical; min-height: 60px; }
+  .tag-checkboxes { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag-check { display: flex; align-items: center; gap: 4px; cursor: pointer; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border2); font-size: 12px; font-weight: 500; transition: all 0.1s; }
+  .tag-check.selected { border-color: var(--accent-mid); background: var(--accent-light); color: var(--accent); }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .select-input { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
+  .items-editor { margin-top: 8px; }
+  .item-editor-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .item-editor-row .form-input { flex: 1; }
+  .del-btn { padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: transparent; cursor: pointer; color: var(--text3); font-size: 12px; flex-shrink: 0; }
+  .del-btn:hover { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+
+  /* ── 토스트 ── */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: #fff; font-size: 13px; padding: 10px 16px; border-radius: var(--radius-sm); box-shadow: var(--shadow); transform: translateY(60px); opacity: 0; transition: all 0.25s ease; pointer-events: none; z-index: 200; max-width: 280px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── 빈 상태 ── */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
+  .empty-state .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- 사이드바 -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="app-title">✓ 감리 체크리스트</div>
+      <div class="app-subtitle">업무별 점검 항목 관리</div>
+    </div>
+    <div class="section-header">업무 목록</div>
+    <div id="job-list" style="flex:1;overflow-y:auto;"></div>
+    <div class="sidebar-footer">
+      <button class="btn-ghost" onclick="openAddJobModal()">+ 업무 추가</button>
+    </div>
+  </aside>
+
+  <!-- 메인 -->
+  <div class="main">
+    <div class="main-header">
+      <div class="header-row">
+        <div class="job-title-wrap">
+          <div class="job-title" id="job-title">업무를 선택하세요</div>
+          <button class="job-edit-btn" id="job-edit-btn" onclick="openEditJobModal()" style="display:none" title="업무명 수정">✎</button>
+        </div>
+        <div class="header-actions">
+          <button class="btn-sm" onclick="openAddCardModal()" id="btn-add-card" style="display:none">+ 항목 추가</button>
+          <button class="btn-sm btn-primary" onclick="openTmplApplyModal()" id="btn-apply-tmpl" style="display:none">템플릿 적용</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('checklist',this)">체크리스트</button>
+        <button class="tab" onclick="switchTab('template',this)">템플릿 관리</button>
+      </div>
+    </div>
+    <div class="content" id="main-content">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>좌측에서 업무를 선택하거나<br>새 업무를 추가하세요.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<!-- 모달: 업무 추가 -->
+<div class="modal-overlay hidden" id="modal-add-job">
+  <div class="modal">
+    <div class="modal-title">새 업무 추가</div>
+    <div class="form-group">
+      <label class="form-label">업무명</label>
+      <input class="form-input" id="inp-job-name" placeholder="예: AI 응급의료 감리">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-add-job')">취소</button>
+      <button class="btn-sm btn-primary" onclick="saveJob()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 업무 수정 -->
+<div class="modal-overlay hidden" id="modal-edit-job">
+  <div class="modal">
+    <div class="modal-title">업무명 수정</div>
+    <div class="form-group">
+      <label class="form-label">업무명</label>
+      <input class="form-input" id="inp-edit-job-name" placeholder="업무명">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-edit-job')">취소</button>
+      <button class="btn-sm" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5;" onclick="deleteJob()">삭제</button>
+      <button class="btn-sm btn-primary" onclick="saveEditJob()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 항목 추가/수정 -->
+<div class="modal-overlay hidden" id="modal-card">
+  <div class="modal">
+    <div class="modal-title" id="modal-card-title">항목 추가</div>
+    <div class="form-group">
+      <label class="form-label">항목명</label>
+      <input class="form-input" id="inp-card-title" placeholder="예: 요구사항 정의 검토">
+    </div>
+    <div class="form-group">
+      <label class="form-label">설명 (선택)</label>
+      <textarea class="form-input form-textarea" id="inp-card-desc" placeholder="어떤 내용을 확인해야 하는지 간략히 설명"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">태그</label>
+      <div class="tag-checkboxes" id="tag-checkboxes"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-card')">취소</button>
+      <button class="btn-sm" id="btn-delete-card" style="display:none;background:#fee2e2;color:#991b1b;border-color:#fca5a5;" onclick="deleteCard()">삭제</button>
+      <button class="btn-sm btn-primary" onclick="saveCard()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 템플릿 적용 -->
+<div class="modal-overlay hidden" id="modal-apply-tmpl">
+  <div class="modal">
+    <div class="modal-title">템플릿 적용</div>
+    <div class="form-group">
+      <label class="form-label">템플릿 선택</label>
+      <select class="select-input" id="sel-tmpl"></select>
+    </div>
+    <p style="font-size:12px;color:var(--text3);margin-top:6px;">⚠ 기존 체크 상태는 유지되며, 없는 항목만 추가됩니다.</p>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-apply-tmpl')">취소</button>
+      <button class="btn-sm btn-primary" onclick="applyTemplate()">적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달: 템플릿 생성/수정 -->
+<div class="modal-overlay hidden" id="modal-tmpl-edit">
+  <div class="modal">
+    <div class="modal-title" id="modal-tmpl-title">새 템플릿</div>
+    <div class="form-group">
+      <label class="form-label">템플릿명</label>
+      <input class="form-input" id="inp-tmpl-name" placeholder="예: 감리 기본 체크리스트">
+    </div>
+    <div class="form-group">
+      <label class="form-label">항목 목록</label>
+      <div id="tmpl-items-editor"></div>
+      <button class="btn-ghost" style="margin-top:8px" onclick="addTmplItemRow()">+ 항목 추가</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('modal-tmpl-edit')">취소</button>
+      <button class="btn-sm" id="btn-delete-tmpl" style="display:none;background:#fee2e2;color:#991b1b;border-color:#fca5a5;" onclick="deleteTemplate()">삭제</button>
+      <button class="btn-sm btn-primary" onclick="saveTmpl()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── 상수 ──
+const TAGS = ['인력','일정','기술','산출물','품질'];
+const TAG_DOT_COLORS = { '인력':'#3b82f6','일정':'#f59e0b','기술':'#10b981','산출물':'#ec4899','품질':'#8b5cf6' };
+
+// ── 기본 데이터 ──
+const DEFAULT_DATA = {
+  jobs: [
+    { id:'j1', name:'AI 응급의료 출동 플랫폼' },
+    { id:'j2', name:'AIoT 도로안전 관리시스템' },
+  ],
+  checkItems: {
+    'j1': [
+      { id:'i1', title:'요구사항 정의 검토', desc:'기능/비기능 요구사항이 명확히 정의되어 있는지 확인', tags:['기술','산출물'], checked:false },
+      { id:'i2', title:'투입 인력 자격 확인', desc:'PM·감리원 자격증 및 경력 요건 충족 여부 점검', tags:['인력'], checked:false },
+      { id:'i3', title:'사업 일정 적정성 검토', desc:'WBS 기준 마일스톤·납기 현실성 확인', tags:['일정'], checked:false },
+      { id:'i4', title:'SW 개발보안 진단', desc:'시큐어코딩 기준 적용 및 취약점 점검 수행 여부', tags:['기술'], checked:false },
+      { id:'i5', title:'산출물 목록 일치 여부', desc:'계약 산출물과 실제 제출 산출물 대조 확인', tags:['산출물'], checked:false },
+      { id:'i6', title:'변경 이력 관리', desc:'인력·일정·기술 변경 발생 시 이력 기록 관리 여부', tags:['인력','일정'], checked:false },
+    ],
+    'j2': [
+      { id:'i7', title:'AI 모델 성능 기준 충족', desc:'정확도·응답시간·오탐률 등 KPI 달성 여부 확인', tags:['기술','품질'], checked:false },
+      { id:'i8', title:'IoT 연계 인터페이스 검증', desc:'센서·엣지 디바이스와 플랫폼 간 연동 규격 점검', tags:['기술','산출물'], checked:false },
+      { id:'i9', title:'GIS 데이터 정합성', desc:'표준노드링크 기반 공간 데이터 오류 여부 점검', tags:['기술'], checked:false },
+      { id:'i10', title:'전담 인력 변경 이력 확인', desc:'핵심 인력 교체 이력 및 사전 승인 여부 점검', tags:['인력'], checked:false },
+    ]
+  },
+  templates: [
+    {
+      id:'t1', name:'감리 기본 체크리스트',
+      items: [
+        { id:'ti1', title:'요구사항 정의 검토', desc:'기능/비기능 요구사항이 명확히 정의되어 있는지 확인', tags:['기술','산출물'] },
+        { id:'ti2', title:'투입 인력 자격 확인', desc:'PM·감리원 자격증 및 경력 요건 충족 여부 점검', tags:['인력'] },
+        { id:'ti3', title:'사업 일정 적정성 검토', desc:'WBS 기준 마일스톤·납기 현실성 확인', tags:['일정'] },
+        { id:'ti4', title:'SW 개발보안 진단', desc:'시큐어코딩 기준 적용 및 취약점 점검 수행 여부', tags:['기술'] },
+        { id:'ti5', title:'산출물 목록 일치 여부', desc:'계약 산출물과 실제 제출 산출물 대조 확인', tags:['산출물'] },
+      ]
+    },
+    {
+      id:'t2', name:'AIoT 특화 체크리스트',
+      items: [
+        { id:'ti6', title:'AI 모델 성능 기준 충족', desc:'정확도·응답시간·오탐률 등 KPI 달성 여부 확인', tags:['기술','품질'] },
+        { id:'ti7', title:'IoT 연계 인터페이스 검증', desc:'센서·엣지 디바이스와 플랫폼 간 연동 규격 점검', tags:['기술','산출물'] },
+        { id:'ti8', title:'GIS 데이터 정합성', desc:'표준노드링크 기반 공간 데이터 오류 여부 점검', tags:['기술'] },
+      ]
+    }
+  ]
+};
+
+// ── 상태 ──
+let state = { jobs:[], checkItems:{}, templates:[] };
+let activeJobId = null;
+let activeTab = 'checklist';
+let editingCardId = null;
+let editingTmplId = null;
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('checklist-app-v1');
+    if (saved) { state = JSON.parse(saved); return; }
+  } catch(e) {}
+  state = JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+function saveState() {
+  try { localStorage.setItem('checklist-app-v1', JSON.stringify(state)); } catch(e) {}
+}
+
+// ── 렌더링 ──
+function renderSidebar() {
+  const list = document.getElementById('job-list');
+  if (!state.jobs.length) {
+    list.innerHTML = '<div style="padding:12px 14px;font-size:12px;color:var(--text3)">등록된 업무가 없습니다.</div>';
+    return;
+  }
+  list.innerHTML = state.jobs.map(j => {
+    const items = state.checkItems[j.id] || [];
+    const done = items.filter(i => i.checked).length;
+    return `<div class="job-item${j.id===activeJobId?' active':''}" onclick="selectJob('${j.id}')">
+      <span class="j-name">${escHtml(j.name)}</span>
+      <span class="j-badge">${done}/${items.length}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderMain() {
+  const job = state.jobs.find(j => j.id === activeJobId);
+  const titleEl = document.getElementById('job-title');
+  const editBtn = document.getElementById('job-edit-btn');
+  const addCardBtn = document.getElementById('btn-add-card');
+  const applyTmplBtn = document.getElementById('btn-apply-tmpl');
+
+  if (!job) {
+    titleEl.textContent = '업무를 선택하세요';
+    editBtn.style.display = 'none';
+    addCardBtn.style.display = 'none';
+    applyTmplBtn.style.display = 'none';
+    document.getElementById('main-content').innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>좌측에서 업무를 선택하거나<br>새 업무를 추가하세요.</p></div>`;
+    return;
+  }
+
+  titleEl.textContent = job.name;
+  editBtn.style.display = '';
+
+  if (activeTab === 'checklist') {
+    addCardBtn.style.display = '';
+    applyTmplBtn.style.display = '';
+    document.getElementById('main-content').innerHTML = renderChecklist();
+  } else {
+    addCardBtn.style.display = 'none';
+    applyTmplBtn.style.display = 'none';
+    document.getElementById('main-content').innerHTML = renderTemplates();
+  }
+}
+
+function renderChecklist() {
+  const items = state.checkItems[activeJobId] || [];
+  const done = items.filter(i => i.checked).length;
+  const pct = items.length ? Math.round(done / items.length * 100) : 0;
+
+  const changeBtns = TAGS.map(tag => {
+    const count = items.filter(i => i.tags.includes(tag)).length;
+    if (!count) return '';
+    return `<button class="change-btn" onclick="uncheckByTag('${tag}')">
+      <span class="tag-dot" style="background:${TAG_DOT_COLORS[tag]}"></span>
+      ${tag}변경 <span style="font-size:10px;color:var(--text3)">${count}</span>
+    </button>`;
+  }).filter(Boolean).join('');
+
+  const cardsHtml = items.length
+    ? items.map(item => `
+      <div class="check-card${item.checked?' checked':''}" onclick="toggleCheck('${item.id}')">
+        <div class="card-inner">
+          <div class="checkbox">
+            <svg class="check-icon" viewBox="0 0 10 10" fill="none">
+              <polyline points="1.5,5 4,8 8.5,2" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="card-body">
+            <div class="card-title">${escHtml(item.title)}</div>
+            ${item.desc ? `<div class="card-desc">${escHtml(item.desc)}</div>` : ''}
+            <div class="card-tags">${item.tags.map(t=>`<span class="tag-pill tag-${t}">${t}</span>`).join('')}</div>
+          </div>
+          <button onclick="event.stopPropagation();openEditCardModal('${item.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:2px 4px;border-radius:4px;font-size:13px;align-self:flex-start;" title="편집">✎</button>
+        </div>
+      </div>`).join('')
+    : `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📝</div><p>항목이 없습니다.<br>위 버튼으로 추가하거나 템플릿을 적용하세요.</p></div>`;
+
+  return `
+    <div class="change-bar">
+      <span class="change-label">변경 해제</span>
+      ${changeBtns || '<span style="font-size:12px;color:var(--text3)">항목에 태그를 추가하면 여기서 일괄 해제할 수 있습니다.</span>'}
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-stat">
+        <div class="progress-num">${done}</div>
+        <div class="progress-lbl">완료</div>
+      </div>
+      <div class="progress-stat">
+        <div class="progress-num" style="color:var(--text2)">${items.length - done}</div>
+        <div class="progress-lbl">미완료</div>
+      </div>
+      <div class="progress-bar-area">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+        <div class="progress-pct">${pct}% 완료</div>
+      </div>
+    </div>
+    <div class="section-title">점검 항목 (${items.length}개)</div>
+    <div class="cards-grid">${cardsHtml}</div>`;
+}
+
+function renderTemplates() {
+  if (!state.templates.length) {
+    return `<div class="empty-state"><div class="empty-icon">📑</div><p>저장된 템플릿이 없습니다.</p></div>
+      <button class="btn-ghost" style="margin-top:16px;max-width:200px" onclick="openAddTmplModal()">+ 새 템플릿 만들기</button>`;
+  }
+  const tmplHtml = state.templates.map(t => `
+    <div class="tmpl-card">
+      <div class="tmpl-icon">📑</div>
+      <div class="tmpl-info">
+        <div class="tmpl-name">${escHtml(t.name)}</div>
+        <div class="tmpl-meta">항목 ${t.items.length}개 · ${t.items.flatMap(i=>i.tags).filter((v,i,a)=>a.indexOf(v)===i).map(tag=>`<span class="tag-pill tag-${tag}" style="font-size:10px">${tag}</span>`).join('')}</div>
+      </div>
+      <div class="tmpl-actions">
+        <button class="icon-btn" onclick="openEditTmplModal('${t.id}')" title="편집">✎</button>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:0 14px 8px;margin-bottom:16px;">
+      ${t.items.map(item=>`
+        <div class="tmpl-item-row">
+          <span style="color:var(--text3);font-size:11px;margin-top:3px">•</span>
+          <div style="flex:1">
+            <span style="font-weight:600">${escHtml(item.title)}</span>
+            ${item.desc?`<span style="color:var(--text3);font-size:12px"> — ${escHtml(item.desc)}</span>`:''}
+            <span style="margin-left:6px">${item.tags.map(tag=>`<span class="tag-pill tag-${tag}" style="font-size:10px">${tag}</span>`).join('')}</span>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+
+  return `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+      <button class="btn-sm btn-primary" onclick="openAddTmplModal()">+ 새 템플릿</button>
+    </div>
+    <div class="tmpl-list">${tmplHtml}</div>`;
+}
+
+function render() { renderSidebar(); renderMain(); }
+
+// ── 인터랙션 ──
+function selectJob(id) { activeJobId = id; render(); }
+
+function switchTab(tab, el) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderMain();
+}
+
+function toggleCheck(itemId) {
+  const items = state.checkItems[activeJobId];
+  if (!items) return;
+  const item = items.find(i => i.id === itemId);
+  if (item) { item.checked = !item.checked; saveState(); render(); }
+}
+
+function uncheckByTag(tag) {
+  const items = state.checkItems[activeJobId];
+  if (!items) return;
+  let count = 0;
+  items.forEach(i => { if (i.tags.includes(tag) && i.checked) { i.checked = false; count++; } });
+  saveState(); render();
+  showToast(count > 0 ? `${tag}변경: 체크 항목 ${count}개 해제` : `'${tag}' 태그 중 체크된 항목이 없습니다.`);
+}
+
+// ── 모달 ──
+function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+function openAddJobModal() {
+  document.getElementById('inp-job-name').value = '';
+  openModal('modal-add-job');
+  setTimeout(() => document.getElementById('inp-job-name').focus(), 80);
+}
+function saveJob() {
+  const name = document.getElementById('inp-job-name').value.trim();
+  if (!name) { showToast('업무명을 입력하세요.'); return; }
+  const id = 'j' + Date.now();
+  state.jobs.push({ id, name });
+  state.checkItems[id] = [];
+  activeJobId = id;
+  saveState(); closeModal('modal-add-job'); render();
+  showToast(`'${name}' 업무가 추가되었습니다.`);
+}
+
+function openEditJobModal() {
+  const job = state.jobs.find(j => j.id === activeJobId);
+  if (!job) return;
+  document.getElementById('inp-edit-job-name').value = job.name;
+  openModal('modal-edit-job');
+  setTimeout(() => document.getElementById('inp-edit-job-name').focus(), 80);
+}
+function saveEditJob() {
+  const name = document.getElementById('inp-edit-job-name').value.trim();
+  if (!name) { showToast('업무명을 입력하세요.'); return; }
+  const job = state.jobs.find(j => j.id === activeJobId);
+  if (job) { job.name = name; saveState(); closeModal('modal-edit-job'); render(); }
+}
+function deleteJob() {
+  if (!confirm('이 업무와 모든 체크 항목을 삭제할까요?')) return;
+  state.jobs = state.jobs.filter(j => j.id !== activeJobId);
+  delete state.checkItems[activeJobId];
+  activeJobId = state.jobs[0]?.id || null;
+  saveState(); closeModal('modal-edit-job'); render();
+  showToast('업무가 삭제되었습니다.');
+}
+
+function buildTagCheckboxes(selectedTags) {
+  return TAGS.map(tag => `
+    <label class="tag-check${selectedTags.includes(tag)?' selected':''}" onclick="toggleTagCheck(this,'${tag}')">
+      <span class="tag-dot" style="background:${TAG_DOT_COLORS[tag]}"></span>${tag}
+    </label>`).join('');
+}
+function toggleTagCheck(el, tag) { el.classList.toggle('selected'); }
+function getSelectedTags() {
+  return [...document.querySelectorAll('#tag-checkboxes .tag-check.selected')].map(el => el.textContent.trim());
+}
+
+function openAddCardModal() {
+  editingCardId = null;
+  document.getElementById('modal-card-title').textContent = '항목 추가';
+  document.getElementById('inp-card-title').value = '';
+  document.getElementById('inp-card-desc').value = '';
+  document.getElementById('tag-checkboxes').innerHTML = buildTagCheckboxes([]);
+  document.getElementById('btn-delete-card').style.display = 'none';
+  openModal('modal-card');
+  setTimeout(() => document.getElementById('inp-card-title').focus(), 80);
+}
+function openEditCardModal(itemId) {
+  const items = state.checkItems[activeJobId] || [];
+  const item = items.find(i => i.id === itemId);
+  if (!item) return;
+  editingCardId = itemId;
+  document.getElementById('modal-card-title').textContent = '항목 수정';
+  document.getElementById('inp-card-title').value = item.title;
+  document.getElementById('inp-card-desc').value = item.desc || '';
+  document.getElementById('tag-checkboxes').innerHTML = buildTagCheckboxes(item.tags);
+  document.getElementById('btn-delete-card').style.display = '';
+  openModal('modal-card');
+  setTimeout(() => document.getElementById('inp-card-title').focus(), 80);
+}
+function saveCard() {
+  const title = document.getElementById('inp-card-title').value.trim();
+  if (!title) { showToast('항목명을 입력하세요.'); return; }
+  const desc = document.getElementById('inp-card-desc').value.trim();
+  const tags = getSelectedTags();
+  if (!state.checkItems[activeJobId]) state.checkItems[activeJobId] = [];
+  if (editingCardId) {
+    const item = state.checkItems[activeJobId].find(i => i.id === editingCardId);
+    if (item) { item.title = title; item.desc = desc; item.tags = tags; }
+  } else {
+    state.checkItems[activeJobId].push({ id:'i'+Date.now(), title, desc, tags, checked:false });
+  }
+  saveState(); closeModal('modal-card'); render();
+}
+function deleteCard() {
+  if (!confirm('이 항목을 삭제할까요?')) return;
+  state.checkItems[activeJobId] = (state.checkItems[activeJobId] || []).filter(i => i.id !== editingCardId);
+  saveState(); closeModal('modal-card'); render();
+  showToast('항목이 삭제되었습니다.');
+}
+
+function openTmplApplyModal() {
+  const sel = document.getElementById('sel-tmpl');
+  sel.innerHTML = state.templates.map(t => `<option value="${t.id}">${escHtml(t.name)} (${t.items.length}개)</option>`).join('');
+  if (!state.templates.length) { showToast('저장된 템플릿이 없습니다. 먼저 템플릿을 만드세요.'); return; }
+  openModal('modal-apply-tmpl');
+}
+function applyTemplate() {
+  const tmplId = document.getElementById('sel-tmpl').value;
+  const tmpl = state.templates.find(t => t.id === tmplId);
+  if (!tmpl) return;
+  if (!state.checkItems[activeJobId]) state.checkItems[activeJobId] = [];
+  const existing = new Set(state.checkItems[activeJobId].map(i => i.title));
+  let added = 0;
+  tmpl.items.forEach(ti => {
+    if (!existing.has(ti.title)) {
+      state.checkItems[activeJobId].push({ id:'i'+Date.now()+Math.random(), title:ti.title, desc:ti.desc||'', tags:[...ti.tags], checked:false });
+      added++;
+    }
+  });
+  saveState(); closeModal('modal-apply-tmpl'); render();
+  showToast(added > 0 ? `${added}개 항목이 추가되었습니다.` : '추가할 새 항목이 없습니다.');
+}
+
+// 템플릿 편집
+let tmplItemRows = [];
+function openAddTmplModal() {
+  editingTmplId = null;
+  document.getElementById('modal-tmpl-title').textContent = '새 템플릿';
+  document.getElementById('inp-tmpl-name').value = '';
+  document.getElementById('btn-delete-tmpl').style.display = 'none';
+  tmplItemRows = [{ id:'r'+Date.now(), title:'', desc:'', tags:[] }];
+  renderTmplItemsEditor();
+  openModal('modal-tmpl-edit');
+}
+function openEditTmplModal(tmplId) {
+  const tmpl = state.templates.find(t => t.id === tmplId);
+  if (!tmpl) return;
+  editingTmplId = tmplId;
+  document.getElementById('modal-tmpl-title').textContent = '템플릿 수정';
+  document.getElementById('inp-tmpl-name').value = tmpl.name;
+  document.getElementById('btn-delete-tmpl').style.display = '';
+  tmplItemRows = tmpl.items.map(i => ({ id:i.id, title:i.title, desc:i.desc||'', tags:[...i.tags] }));
+  renderTmplItemsEditor();
+  openModal('modal-tmpl-edit');
+}
+function renderTmplItemsEditor() {
+  document.getElementById('tmpl-items-editor').innerHTML = tmplItemRows.map((row,idx) => `
+    <div class="item-editor-row">
+      <input class="form-input" style="flex:2" placeholder="항목명" value="${escHtml(row.title)}" onchange="tmplItemRows[${idx}].title=this.value">
+      <input class="form-input" style="flex:3" placeholder="설명(선택)" value="${escHtml(row.desc)}" onchange="tmplItemRows[${idx}].desc=this.value">
+      <button class="del-btn" onclick="removeTmplItemRow(${idx})">✕</button>
+    </div>`).join('');
+}
+function addTmplItemRow() { tmplItemRows.push({id:'r'+Date.now(),title:'',desc:'',tags:[]}); renderTmplItemsEditor(); }
+function removeTmplItemRow(idx) { tmplItemRows.splice(idx,1); renderTmplItemsEditor(); }
+function saveTmpl() {
+  const name = document.getElementById('inp-tmpl-name').value.trim();
+  if (!name) { showToast('템플릿명을 입력하세요.'); return; }
+  const items = tmplItemRows.filter(r => r.title.trim()).map(r => ({ id:r.id, title:r.title.trim(), desc:r.desc.trim(), tags:r.tags }));
+  if (editingTmplId) {
+    const tmpl = state.templates.find(t => t.id === editingTmplId);
+    if (tmpl) { tmpl.name = name; tmpl.items = items; }
+  } else {
+    state.templates.push({ id:'t'+Date.now(), name, items });
+  }
+  saveState(); closeModal('modal-tmpl-edit'); render();
+  showToast('템플릿이 저장되었습니다.');
+}
+function deleteTemplate() {
+  if (!confirm('이 템플릿을 삭제할까요?')) return;
+  state.templates = state.templates.filter(t => t.id !== editingTmplId);
+  saveState(); closeModal('modal-tmpl-edit'); render();
+  showToast('템플릿이 삭제되었습니다.');
+}
+
+// ── 유틸 ──
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// 모달 외부 클릭 닫기
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.add('hidden'); });
+});
+
+// 엔터키
+document.getElementById('inp-job-name').addEventListener('keydown', e => { if(e.key==='Enter') saveJob(); });
+document.getElementById('inp-edit-job-name').addEventListener('keydown', e => { if(e.key==='Enter') saveEditJob(); });
+document.getElementById('inp-card-title').addEventListener('keydown', e => { if(e.key==='Enter') saveCard(); });
+
+// ── 초기화 ──
+loadState();
+activeJobId = state.jobs[0]?.id || null;
+render();
+</script>
+</body>
+</html>
